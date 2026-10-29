@@ -1,108 +1,190 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import {
+  LayoutDashboard,
+  FolderKanban,
+  CheckSquare,
+  Users,
+  MessageSquare,
+  LogOut,
+  Menu,
+  X,
+  Sparkles,
+  ShieldCheck,
+  User as UserIcon,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 export const DashboardLayout = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+    toast.info('Anda telah keluar dari sistem.');
     navigate('/login');
   };
 
-  const navItemClass = ({ isActive }) => 
-    `block px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-3 ${
-      isActive 
-        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 translate-x-1' 
-        : 'text-slate-600 hover:bg-white hover:text-primary-600 hover:shadow-sm hover:translate-x-1'
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.startsWith('/projects')) return 'Proyek & Workspace';
+    if (path.startsWith('/tasks')) return 'Manajemen Tugas';
+    if (path.startsWith('/users')) return 'Manajemen Tim & Pengguna';
+    if (path.startsWith('/comments')) return 'Aktivitas Komentar';
+    return 'Dashboard Ikhtisar';
+  };
+
+  const navItemClass = ({ isActive }) =>
+    `flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-sm transition-all duration-200 group ${
+      isActive
+        ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-md shadow-primary-500/25 font-semibold'
+        : 'text-slate-600 hover:text-primary-600 hover:bg-white/80 hover:shadow-sm'
     }`;
 
+  const navLinks = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/projects', label: 'Projects', icon: FolderKanban },
+    { to: '/tasks', label: 'Tasks', icon: CheckSquare },
+    { to: '/users', label: 'Team & Users', icon: Users },
+    { to: '/comments', label: 'Comments', icon: MessageSquare },
+  ];
+
   return (
-    <div className="min-h-screen flex bg-slate-50 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-200/40 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-200/40 rounded-full blur-3xl"></div>
-      
-      {/* Mobile Overlay */}
+    <div className="min-h-screen flex bg-slate-50 relative overflow-x-hidden selection:bg-primary-500 selection:text-white">
+      {/* Background glowing decorations */}
+      <div className="fixed top-[-15%] left-[-10%] w-[500px] h-[500px] bg-primary-200/35 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="fixed bottom-[-15%] right-[-10%] w-[500px] h-[500px] bg-purple-200/35 rounded-full blur-3xl pointer-events-none"></div>
+
+      {/* Mobile Drawer Backdrop */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-800/40 backdrop-blur-sm z-40 md:hidden"
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
-      
-      {/* Sidebar */}
-      <aside className={`w-72 glass-panel border-r border-white/60 flex flex-col z-50 m-4 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/50 fixed inset-y-0 left-0 transform transition-transform duration-300 md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-[150%]'}`}>
-        <div className="p-8 border-b border-white/40 bg-white/30 backdrop-blur-md">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-primary-400 text-white flex items-center justify-center shadow-lg shadow-primary-500/30">
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+
+      {/* Sidebar Navigation */}
+      <aside
+        className={`w-72 glass-panel border-r border-white/80 flex flex-col z-50 m-3 md:m-4 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/60 fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-[110%]'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-6 border-b border-white/60 bg-white/40 backdrop-blur-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-primary-500/30">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-black text-slate-800 tracking-tight leading-none">
+                  TaskFlow
+                </h1>
+                <span className="text-[11px] font-semibold text-primary-600 uppercase tracking-wider">
+                  Management App
+                </span>
+              </div>
             </div>
-            <h1 className="text-xl font-extrabold text-slate-800 tracking-tight">Task Manager</h1>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div className="flex items-center gap-2 mt-4 px-2 py-1.5 bg-white/60 rounded-lg border border-white/50">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <p className="text-xs font-semibold text-slate-600 truncate">{user?.email || 'User Panel'}</p>
+
+          {/* User Profile Card in Sidebar */}
+          <div className="mt-5 p-3 rounded-2xl bg-white/70 border border-white/80 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-primary-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
+              {user?.name ? user.name.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-800 truncate">
+                {user?.name || user?.email?.split('@')[0] || 'User'}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary-100 text-primary-700 uppercase">
+                  {user?.role || 'Member'}
+                </span>
+                <span className="text-[10px] text-slate-400 truncate">{user?.email}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
-          <NavLink to="/dashboard" className={navItemClass} onClick={() => setIsMobileMenuOpen(false)}>
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-             Dashboard
-          </NavLink>
-          <NavLink to="/projects" className={navItemClass} onClick={() => setIsMobileMenuOpen(false)}>
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
-             Projects
-          </NavLink>
-          <NavLink to="/tasks" className={navItemClass} onClick={() => setIsMobileMenuOpen(false)}>
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-             Tasks
-          </NavLink>
-          <NavLink to="/users" className={navItemClass} onClick={() => setIsMobileMenuOpen(false)}>
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-             Users
-          </NavLink>
-          <NavLink to="/comments" className={navItemClass} onClick={() => setIsMobileMenuOpen(false)}>
-             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-             Comments
-          </NavLink>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={navItemClass}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Icon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
-        <div className="p-5 border-t border-white/40 bg-white/20">
+
+        {/* Logout Footer */}
+        <div className="p-4 border-t border-white/60 bg-white/30 backdrop-blur-sm">
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-3 bg-red-50/80 text-red-600 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all duration-300 shadow-sm flex items-center justify-center gap-2 group"
+            className="w-full px-4 py-2.5 rounded-2xl font-semibold text-sm text-red-600 bg-red-50/80 hover:bg-red-500 hover:text-white transition-all duration-200 flex items-center justify-center gap-2 group shadow-sm"
           >
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            Logout
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+            <span>Keluar Akun</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col z-10 min-w-0">
-        <header className="h-20 bg-white/60 backdrop-blur-xl border-b border-white/60 flex items-center justify-between px-8 md:mx-6 md:mt-4 rounded-t-3xl md:rounded-3xl shadow-sm md:mb-4">
+      {/* Main Content Viewport */}
+      <div className="flex-1 flex flex-col min-w-0 z-10">
+        {/* Top Header Navbar */}
+        <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-white/60 flex items-center justify-between px-5 md:px-8 md:mx-4 md:mt-4 md:rounded-3xl shadow-sm">
           <div className="flex items-center gap-3">
-             <button onClick={() => setIsMobileMenuOpen(true)} className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600 md:hidden">
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-             </button>
-             <span className="font-extrabold text-xl text-slate-800">Workspace</span>
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 md:hidden shadow-sm active:scale-95"
+              aria-label="Buka Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight">
+                {getPageTitle()}
+              </h2>
+              <p className="text-xs text-slate-500 hidden sm:block">
+                Kelola proyek dan tugas tim Anda secara terorganisir
+              </p>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="md:hidden text-sm text-red-600 font-bold flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg"
-          >
-            Logout
-          </button>
-          
-          <div className="hidden md:flex items-center gap-4">
-             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary-400 to-primary-600 shadow-md flex items-center justify-center text-white font-bold border-2 border-white">
-                {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
-             </div>
+
+          {/* Quick Header Actions */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 pl-3 border-l border-slate-200/80">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-slate-800 leading-tight">
+                  {user?.name || user?.email?.split('@')[0]}
+                </p>
+                <p className="text-[11px] font-medium text-slate-500 capitalize">{user?.role || 'Member'}</p>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary-500 to-indigo-600 text-white font-bold text-sm flex items-center justify-center shadow-md shadow-primary-500/20 border-2 border-white">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+            </div>
           </div>
         </header>
-        <main className="flex-1 p-6 md:px-6 md:py-2 overflow-y-auto mb-4">
+
+        {/* Dynamic Page Content */}
+        <main className="flex-1 p-4 md:p-6 md:px-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>
